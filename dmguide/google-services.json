@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "518313061133",
+    "project_id": "dmguide-75eac",
+    "storage_bucket": "dmguide-75eac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:518313061133:android:8d7eb68ab8933340c5de44",
+        "android_client_info": {
+          "package_name": "dm.guide"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYDgmzrxw8t_XTwzZu1TbELVbVU2uX8Xo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
