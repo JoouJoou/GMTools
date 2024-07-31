@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import '../widgets/custom_button.dart';  // Importe o botão personalizado
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -8,26 +7,101 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  void _login() {
-    String email = _emailController.text;
-    String password = _passwordController.text;
-    print('Email: $email, Password: $password');
-  }
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void _register() {
-    print('Ir para a tela de registro');
-  }
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-  Future<void> _loginWithGoogle() async {
+    if (email.isEmpty || password.isEmpty) {
+      print('Campos vazios: email ou senha não fornecidos');
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Erro'),
+          content: Text('Preencha todos os campos obrigatórios.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     try {
-      await _googleSignIn.signIn();
-      print('Login com Google bem-sucedido');
-    } catch (error) {
-      print('Erro ao fazer login com Google: $error');
+      print('Consultando Firestore para o email: $email');
+      final query = await _firestore.collection('users').where('email', isEqualTo: email).get();
+      print('Consulta Firestore concluída. Total de documentos encontrados: ${query.docs.length}');
+
+      if (query.docs.isNotEmpty) {
+        final user = query.docs.first.data();
+        print('Usuário encontrado: ${user['email']}');
+        print('Senha armazenada: ${user['password']}'); // Atenção ao expor senhas
+
+        if (user['password'] == password) {
+          print('Login bem-sucedido');
+          Navigator.pushReplacementNamed(context, '/home');  // Substitua '/home' pela sua tela inicial
+        } else {
+          print('Senha incorreta');
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text('Erro'),
+              content: Text('Email ou senha incorretos.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      } else {
+        print('Usuário não encontrado');
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('Erro'),
+            content: Text('Usuário não encontrado.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Erro ao fazer login: $e');
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Erro'),
+          content: Text('Erro ao fazer login. Tente novamente.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -35,202 +109,172 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFFFF9EA),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              SizedBox(height: 100.0),  // Espaço para centralizar o conteúdo verticalmente
-              Container(
-                width: double.infinity,
-                height: 200.0,
-                child: Image.asset(
-                  'assets/logo.png',
-                  fit: BoxFit.cover,
-                ),
-              ),
-              SizedBox(height: 16.0),
-              Text(
-                'Login',
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontWeight: FontWeight.w500,
-                  fontSize: 24.0,
-                  color: Color(0xFFFFA61F),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Outfit',
-                    color: Color(0xFF444040),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1.0,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1.0,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 2.0,
-                    ),
-                  ),
-                ),
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  color: Color(0xFF444040),
-                  fontSize: 16.0,
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Senha',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Outfit',
-                    color: Color(0xFF444040),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1.0,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1.0,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 2.0,
-                    ),
-                  ),
-                ),
-                obscureText: true,
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  color: Color(0xFF444040),
-                  fontSize: 16.0,
-                ),
-              ),
-              SizedBox(height: 8.0),
-              Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  onTap: () {
-                    print('Esqueceu sua senha?');
-                  },
-                  child: Text(
-                    'Esqueceu sua senha?',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      color: Color(0xFF444040),
-                      fontSize: 16.0,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF3CA8CF),  // Usar backgroundColor em vez de primary
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                  ),
-                  child: Text(
-                    'Login',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 24.0,
-                      color: Color(0xFFFFF9EA),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              Center(
-                child: GestureDetector(
-                  onTap: () {
-                  // Navegar para a tela de registro
-                  Navigator.pushNamed(context, '/register');
-        },
-                  child: Text(
-                    'Registre-se',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      color: Color(0xFF3CA8CF),
-                      fontSize: 16.0,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              Center(
-                child: Text(
-                  'Ou entre com:',
-                  style: TextStyle(
-                    fontFamily: 'Outfit',
-                    color: Color(0xFF555252),
-                    fontSize: 16.0,
-                  ),
-                ),
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Divider(
-                      color: Color(0xFF3CA8CF),
-                      thickness: 1.0,
-                    ),
-                  ),
-                  SizedBox(width: 8.0),
-                  GestureDetector(
-                    onTap: _loginWithGoogle,
-                    child: Image.asset(
-                      'assets/google.png',  // Verifique se o caminho está correto
-                      width: 48.0,  // Aumentar o tamanho do ícone
-                      height: 48.0,  // Aumentar o tamanho do ícone
-                    ),
-                  ),
-                  SizedBox(width: 8.0),
-                  Expanded(
-                    child: Divider(
-                      color: Color(0xFF3CA8CF),
-                      thickness: 1.0,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+      appBar: AppBar(
+        title: Text(
+          '',
+          style: TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 24,
+            color: Color(0xFFFFA61F),
           ),
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            'assets/logo.png',
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 16.0),
+                    Text(
+                      'Login',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 24,
+                        color: Color(0xFFFFA61F),
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        hintText: 'Email',
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF3CA8CF), width: 1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF3CA8CF), width: 1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 16,
+                        color: Color(0xFF444040),
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    TextField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        hintText: 'Senha',
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF3CA8CF), width: 1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF3CA8CF), width: 1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      obscureText: true,
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 16,
+                        color: Color(0xFF444040),
+                      ),
+                    ),
+                    SizedBox(height: 8.0),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () {
+                          // Implementar a navegação para tela de recuperação de senha
+                        },
+                        child: Text(
+                          'Esqueceu sua senha?',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 16,
+                            color: Color(0xFF444040),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    ElevatedButton(
+                      onPressed: _login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF3CA8CF),
+                        minimumSize: Size(double.infinity, 48),  // Largura 100%
+                      ),
+                      child: Text(
+                        'Login',
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 24,
+                          color: Color(0xFFFFF9EA),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/register');  // Navegar para a tela de registro
+                        },
+                        child: Text(
+                          'Registre-se',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 16,
+                            color: Color(0xFF3CA8CF),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    Center(
+                      child: Text(
+                        'Ou entre com:',
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 16,
+                          color: Color(0xFF555252),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 1,
+                          color: Color(0xFF3CA8CF),
+                        ),
+                        SizedBox(width: 8.0),
+                        Image.asset(
+                          'assets/google.png',
+                          width: 50,  // Tamanho do ícone
+                          height: 50, // Tamanho do ícone
+                        ),
+                        SizedBox(width: 8.0),
+                        Container(
+                          width: 50,
+                          height: 1,
+                          color: Color(0xFF3CA8CF),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
