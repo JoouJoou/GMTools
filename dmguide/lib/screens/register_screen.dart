@@ -44,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'username': username,
         'email': email,
         'phone': phone,
-        'password': password,  // Em um cenário real, use hashing para senhas
+        'password': password,
       });
 
       Navigator.pop(context);
@@ -206,8 +206,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ElevatedButton(
                 onPressed: _register,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF3CA8CF),  // Substituído primary por backgroundColor
-                  minimumSize: Size(double.infinity, 48),  // Largura 100%
+                  backgroundColor: Color(0xFF3CA8CF),
+                  minimumSize: Size(double.infinity, 48),
                 ),
                 child: Text(
                   'Registrar',

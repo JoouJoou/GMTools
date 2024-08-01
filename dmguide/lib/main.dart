@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';  // Importe a tela de registro
-import 'screens/home_screen.dart';      // Importe a tela inicial
+import 'screens/register_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/creation_screen.dart';
+import 'screens/collection_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -28,7 +30,9 @@ class MyApp extends StatelessWidget {
       home: LoginScreen(),
       routes: {
         '/register': (context) => RegisterScreen(),
-        '/home': (context) => HomeScreen(),  // Adicione a rota para a tela inicial
+        '/home': (context) => HomeScreen(),
+        '/creation_screen': (context) => CreationScreen(),
+        '/collection_screen': (context) => CollectionScreen(),
       },
     );
   }

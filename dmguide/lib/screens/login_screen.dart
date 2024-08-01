@@ -44,11 +44,11 @@ class _LoginScreenState extends State<LoginScreen> {
       if (query.docs.isNotEmpty) {
         final user = query.docs.first.data();
         print('Usuário encontrado: ${user['email']}');
-        print('Senha armazenada: ${user['password']}'); // Atenção ao expor senhas
+        print('Senha armazenada: ${user['password']}');
 
         if (user['password'] == password) {
           print('Login bem-sucedido');
-          Navigator.pushReplacementNamed(context, '/home');  // Substitua '/home' pela sua tela inicial
+          Navigator.pushReplacementNamed(context, '/home');
         } else {
           print('Senha incorreta');
           showDialog(
@@ -191,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: GestureDetector(
                         onTap: () {
-                          // Implementar a navegação para tela de recuperação de senha
+
                         },
                         child: Text(
                           'Esqueceu sua senha?',
@@ -208,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF3CA8CF),
-                        minimumSize: Size(double.infinity, 48),  // Largura 100%
+                        minimumSize: Size(double.infinity, 48),
                       ),
                       child: Text(
                         'Login',
@@ -223,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Center(
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, '/register');  // Navegar para a tela de registro
+                          Navigator.pushNamed(context, '/register');
                         },
                         child: Text(
                           'Registre-se',
@@ -258,8 +258,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(width: 8.0),
                         Image.asset(
                           'assets/google.png',
-                          width: 50,  // Tamanho do ícone
-                          height: 50, // Tamanho do ícone
+                          width: 50,
+                          height: 50,
                         ),
                         SizedBox(width: 8.0),
                         Container(
