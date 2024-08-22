@@ -90,7 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/collection_screen');
+                                            Navigator.pushNamed(
+                        context,
+                        '/collection_screen',
+                        arguments: {'email': widget.email},  // Passando o email como argumento
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFFFFF9EA),

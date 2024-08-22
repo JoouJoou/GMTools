@@ -4,6 +4,7 @@ import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/creation_screen.dart';
 import 'screens/collection_screen.dart';
+import 'screens/edit_screen.dart'; // Importe a tela de edição
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/register': (context) => RegisterScreen(),
         '/creation_screen': (context) => CreationScreen(),
-        '/collection_screen': (context) => CollectionScreen(),
+        // Remover o CollectionScreen daqui e incluir no onGenerateRoute
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/home') {
@@ -45,6 +46,28 @@ class MyApp extends StatelessWidget {
             },
           );
         }
+
+        if (settings.name == '/collection_screen') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) {
+              return CollectionScreen(
+                email: args['email'] ?? '', // Passar o email como argumento
+              );
+            },
+          );
+        }
+if (settings.name == '/edit_screen') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) {
+              return CollectionScreen(
+                email: args['email'] ?? '', // Passar o email como argumento
+              );
+            },
+          );
+        }
+
         return null;
       },
     );
