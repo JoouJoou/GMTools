@@ -68,6 +68,7 @@ flutter:
     - assets/logo.png
     - assets/google.png
     - assets/user.png
+    - assets/dragonimg.png
 
   fonts:
     - family: Outfit

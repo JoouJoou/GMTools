@@ -1,3 +1,4 @@
+import 'package:dmguide/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -48,7 +49,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (user['password'] == password) {
           print('Login bem-sucedido');
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                userName: user['username'],
+                email: user['email'],
+              ),
+            ),
+          );
         } else {
           print('Senha incorreta');
           showDialog(

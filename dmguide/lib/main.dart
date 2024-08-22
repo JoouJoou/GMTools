@@ -30,9 +30,22 @@ class MyApp extends StatelessWidget {
       home: LoginScreen(),
       routes: {
         '/register': (context) => RegisterScreen(),
-        '/home': (context) => HomeScreen(),
         '/creation_screen': (context) => CreationScreen(),
         '/collection_screen': (context) => CollectionScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/home') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) {
+              return HomeScreen(
+                userName: args['userName'] ?? '',
+                email: args['email'] ?? '',
+              );
+            },
+          );
+        }
+        return null;
       },
     );
   }

@@ -13,33 +13,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final _formKey = GlobalKey<FormState>();
+
+  Future<bool> _checkEmailExists(String email) async {
+    final querySnapshot = await _firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+    return querySnapshot.docs.isNotEmpty;
+  }
 
   Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     final username = _usernameController.text;
     final email = _emailController.text;
     final phone = _phoneController.text;
     final password = _passwordController.text;
 
-    if (username.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Erro'),
-          content: Text('Preencha todos os campos obrigatórios.'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
     try {
+      // Verifica se o email já está registrado
+      if (await _checkEmailExists(email)) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('Erro'),
+            content: Text('Este email já está registrado.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
       await _firestore.collection('users').add({
         'username': username,
         'email': email,
@@ -86,153 +100,190 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Registro',
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 24,
-                  color: Color(0xFFFFA61F),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  hintText: 'Nome de usuário',
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 16,
-                  color: Color(0xFF444040),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  hintText: 'Email',
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 16,
-                  color: Color(0xFF444040),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _phoneController,
-                decoration: InputDecoration(
-                  hintText: 'Número de telefone',
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 16,
-                  color: Color(0xFF444040),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  hintText: 'Senha',
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(0xFF3CA8CF),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                obscureText: true,
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 16,
-                  color: Color(0xFF444040),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _register,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF3CA8CF),
-                  minimumSize: Size(double.infinity, 48),
-                ),
-                child: Text(
-                  'Registrar',
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Registro',
                   style: TextStyle(
                     fontFamily: 'Outfit',
                     fontSize: 24,
-                    color: Color(0xFFFFF9EA),
+                    color: Color(0xFFFFA61F),
                   ),
                 ),
-              ),
-              SizedBox(height: 16.0),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Já tem uma conta? Faça login',
+                SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    hintText: 'Nome de usuário',
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF3CA8CF),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF3CA8CF),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   style: TextStyle(
                     fontFamily: 'Outfit',
                     fontSize: 16,
-                    color: Color(0xFF3CA8CF),
+                    color: Color(0xFF444040),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira um nome de usuário.';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    hintText: 'Email',
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF3CA8CF),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF3CA8CF),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 16,
+                    color: Color(0xFF444040),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira um email.';
+                    } else if (!RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
+                      return 'Por favor, insira um email válido.';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    hintText: 'Número de telefone',
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF3CA8CF),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF3CA8CF),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 16,
+                    color: Color(0xFF444040),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira um número de telefone.';
+                    } else if (!RegExp(r'^\d{10,15}$').hasMatch(value)) {
+                      return 'Por favor, insira um número de telefone válido.';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    hintText: 'Senha',
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF3CA8CF),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF3CA8CF),
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  obscureText: true,
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 16,
+                    color: Color(0xFF444040),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, insira uma senha.';
+                    } else if (value.length < 6) {
+                      return 'A senha deve ter pelo menos 6 caracteres.';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: _register,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF3CA8CF),
+                    minimumSize: Size(double.infinity, 48),
+                  ),
+                  child: Text(
+                    'Registrar',
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 24,
+                      color: Color(0xFFFFF9EA),
+                    ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 16.0),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Já tem uma conta? Faça login',
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 16,
+                      color: Color(0xFF3CA8CF),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart'; // Adicione esta importação para usar o TextInputFormatter
 
 class CreationScreen extends StatefulWidget {
   @override
@@ -13,6 +13,7 @@ class _CreationScreenState extends State<CreationScreen> {
   final _ageController = TextEditingController();
   final _appearanceController = TextEditingController();
   final _historyController = TextEditingController();
+  final _naturalnessController = TextEditingController();
 
   String? _selectedType;
   String? _selectedAlignment;
@@ -23,6 +24,18 @@ class _CreationScreenState extends State<CreationScreen> {
     'Caótico bom', 'Caótico neutro', 'Caótico mau'
   ];
 
+  String? _email;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      _email = args['email'];
+      print('Email recebido: $_email'); // Adiciona o print para verificar o email
+    }
+  }
+
   Future<void> _saveData() async {
     final campaign = _campaignController.text;
     final age = int.tryParse(_ageController.text) ?? 0;
@@ -30,9 +43,9 @@ class _CreationScreenState extends State<CreationScreen> {
     final alignment = _selectedAlignment ?? '';
     final appearance = _appearanceController.text;
     final history = _historyController.text;
+    final naturalness = _naturalnessController.text;
 
-    if (campaign.isEmpty || type.isEmpty || alignment.isEmpty || appearance.isEmpty || history.isEmpty) {
-
+    if (campaign.isEmpty || type.isEmpty || alignment.isEmpty || appearance.isEmpty || history.isEmpty || naturalness.isEmpty) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -52,28 +65,24 @@ class _CreationScreenState extends State<CreationScreen> {
     }
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await FirebaseFirestore.instance.collection('characters').add({
-          'userId': user.uid,
-          'campaign': campaign,
-          'age': age,
-          'type': type,
-          'alignment': alignment,
-          'appearance': appearance,
-          'history': history,
-        });
+      await FirebaseFirestore.instance.collection('characters').add({
+        'email': _email,
+        'campaign': campaign,
+        'age': age,
+        'type': type,
+        'alignment': alignment,
+        'appearance': appearance,
+        'history': history,
+        'naturalness': naturalness,
+      });
 
-
-        Navigator.pop(context);
-      }
+      Navigator.pop(context);
     } catch (e) {
-
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text('Erro'),
-          content: Text('Erro ao salvar dados. Tente novamente.'),
+          content: Text('Erro ao salvar dados: $e'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -117,6 +126,7 @@ class _CreationScreenState extends State<CreationScreen> {
             Row(
               children: [
                 Expanded(
+                  flex: 2,
                   child: _buildTextField(
                     controller: _campaignController,
                     label: 'Campanha',
@@ -126,36 +136,12 @@ class _CreationScreenState extends State<CreationScreen> {
                 ),
                 SizedBox(width: 8),
                 Expanded(
+                  flex: 1,
                   child: _buildTextField(
                     controller: _ageController,
                     label: 'Idade',
                     hint: 'Idade',
                     isNumber: true,
-                  ),
-                ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedType,
-                    decoration: InputDecoration(
-                      hintText: 'Tipo',
-                      filled: true,
-                      fillColor: Color(0xFFFFF9EA),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    items: _types.map((type) {
-                      return DropdownMenuItem(
-                        value: type,
-                        child: Text(type),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedType = value;
-                      });
-                    },
                   ),
                 ),
               ],
@@ -164,22 +150,23 @@ class _CreationScreenState extends State<CreationScreen> {
             Row(
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<String>(
+                  child: _buildDropdownField(
+                    value: _selectedType,
+                    hint: 'Tipo',
+                    items: _types,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedType = value;
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: _buildDropdownField(
                     value: _selectedAlignment,
-                    decoration: InputDecoration(
-                      hintText: 'Alinhamento',
-                      filled: true,
-                      fillColor: Color(0xFFFFF9EA),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    items: _alignments.map((alignment) {
-                      return DropdownMenuItem(
-                        value: alignment,
-                        child: Text(alignment),
-                      );
-                    }).toList(),
+                    hint: 'Alinhamento',
+                    items: _alignments,
                     onChanged: (value) {
                       setState(() {
                         _selectedAlignment = value;
@@ -187,16 +174,14 @@ class _CreationScreenState extends State<CreationScreen> {
                     },
                   ),
                 ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: _buildTextField(
-                    controller: null,
-                    label: 'Naturalidade',
-                    hint: 'Local de origem',
-                    isNumber: false,
-                  ),
-                ),
               ],
+            ),
+            SizedBox(height: 8),
+            _buildTextField(
+              controller: _naturalnessController,
+              label: 'Naturalidade',
+              hint: 'Local de origem',
+              isNumber: false,
             ),
             SizedBox(height: 16),
             _buildDescriptionField(
@@ -232,38 +217,6 @@ class _CreationScreenState extends State<CreationScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Color(0xFFFFA61F),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(
-              icon: Icon(Icons.school, size: 30),
-              onPressed: () {},
-              color: Colors.white,
-              iconSize: 30,
-            ),
-            IconButton(
-              icon: FaIcon(FontAwesomeIcons.khanda, size: 30),
-              onPressed: () {},
-              color: Colors.white,
-              iconSize: 30,
-            ),
-            IconButton(
-              icon: Icon(Icons.healing, size: 30),
-              onPressed: () {},
-              color: Colors.white,
-              iconSize: 30,
-            ),
-            IconButton(
-              icon: Icon(Icons.backpack, size: 30),
-              onPressed: () {},
-              color: Colors.white,
-              iconSize: 30,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -287,6 +240,7 @@ class _CreationScreenState extends State<CreationScreen> {
         TextField(
           controller: controller,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+          inputFormatters: isNumber ? [FilteringTextInputFormatter.digitsOnly] : [],
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -333,6 +287,46 @@ class _CreationScreenState extends State<CreationScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String? value,
+    required String hint,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Container(
+      constraints: BoxConstraints(maxHeight: 60), // Define a altura máxima para a caixa
+      child: InputDecorator(
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Color(0xFFFFF9EA),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey[600]), // Define a cor do texto do placeholder
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: value,
+            isExpanded: true,
+            hint: Text(
+              hint,
+              style: TextStyle(color: Colors.grey[600]), // Define a cor do texto do placeholder
+            ),
+            items: items.map((item) {
+              return DropdownMenuItem(
+                value: item,
+                child: Text(item),
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
+        ),
+      ),
     );
   }
 }
