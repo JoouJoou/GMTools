@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'edit_screen.dart'; // Importe a tela de edição
+import 'edit_screen.dart';
 
 class CollectionScreen extends StatelessWidget {
   final String email;
@@ -40,7 +40,7 @@ class CollectionScreen extends StatelessWidget {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               var character = snapshot.data!.docs[index];
-              var characterId = character['characterId']; // Obtenha o characterId
+              var characterId = character['characterId'];
 
               return ListTile(
                 title: Text(
@@ -60,7 +60,7 @@ class CollectionScreen extends StatelessWidget {
                   ],
                 ),
                 trailing: SizedBox(
-                  width: 96,  // Ajuste a largura conforme necessário
+                  width: 96,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -71,7 +71,7 @@ class CollectionScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => EditScreen(
-                                characterId: characterId, // Passe o characterId
+                                characterId: characterId,
                               ),
                             ),
                           );
@@ -114,7 +114,7 @@ class CollectionScreen extends StatelessWidget {
                   ),
                 ),
                 onTap: () {
-                  // Navegar para a tela de detalhes do personagem, se necessário
+
                 },
               );
             },

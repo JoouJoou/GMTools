@@ -31,8 +31,7 @@ class MyApp extends StatelessWidget {
       home: LoginScreen(),
       routes: {
         '/register': (context) => RegisterScreen(),
-        '/creation_screen': (context) => CreationScreen(),
-        // Remover o CollectionScreen daqui e incluir no onGenerateRoute
+        '/creation_screen': (context) => CreationScreen()
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/home') {
@@ -63,7 +62,7 @@ if (settings.name == '/edit_screen') {
           return MaterialPageRoute(
             builder: (context) {
               return EditScreen(
-                characterId: args['characterId'] ?? '', // Passar o email como argumento
+                characterId: args['characterId'] ?? '',
               );
             },
           );

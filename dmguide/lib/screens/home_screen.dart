@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Positioned(
-            bottom: 0,
+            bottom: -35,
             right: -70,
             child: Image.asset(
               'assets/dragonimg.png',

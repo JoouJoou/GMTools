@@ -109,7 +109,7 @@ class _CreationScreenState extends State<CreationScreen> {
         title: Row(
           children: [
             Text(
-              'Nome do Personagem',
+              'Criação de Personagem',
               style: TextStyle(
                 fontFamily: 'Outfit',
                 fontSize: 24,
@@ -134,8 +134,8 @@ class _CreationScreenState extends State<CreationScreen> {
                   flex: 2,
                   child: _buildTextField(
                     controller: _campaignController,
-                    label: 'Campanha',
-                    hint: 'Nome da campanha',
+                    label: 'Nome',
+                    hint: 'Nome do Personagem',
                     isNumber: false,
                   ),
                 ),
