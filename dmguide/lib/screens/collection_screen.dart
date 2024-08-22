@@ -6,7 +6,7 @@ import 'edit_screen.dart'; // Importe a tela de edição
 class CollectionScreen extends StatelessWidget {
   final String email;
 
-  CollectionScreen({required this.email});
+  CollectionScreen({required this.email, required characterId});
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +40,8 @@ class CollectionScreen extends StatelessWidget {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               var character = snapshot.data!.docs[index];
+              var characterId = character['characterId']; // Obtenha o characterId
+
               return ListTile(
                 title: Text(
                   character['campaign'],
@@ -69,7 +71,7 @@ class CollectionScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => EditScreen(
-                                email: email, 
+                                characterId: characterId, // Passe o characterId
                               ),
                             ),
                           );

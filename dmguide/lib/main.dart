@@ -53,6 +53,7 @@ class MyApp extends StatelessWidget {
             builder: (context) {
               return CollectionScreen(
                 email: args['email'] ?? '', // Passar o email como argumento
+                characterId: args['characterId'] ?? '',
               );
             },
           );
@@ -61,8 +62,8 @@ if (settings.name == '/edit_screen') {
           final args = settings.arguments as Map<String, dynamic>;
           return MaterialPageRoute(
             builder: (context) {
-              return CollectionScreen(
-                email: args['email'] ?? '', // Passar o email como argumento
+              return EditScreen(
+                characterId: args['characterId'] ?? '', // Passar o email como argumento
               );
             },
           );

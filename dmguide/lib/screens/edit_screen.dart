@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditScreen extends StatefulWidget {
-  final String email;
+  final String characterId;
 
-  EditScreen({required this.email});
+  EditScreen({required this.characterId});
 
   @override
   _EditScreenState createState() => _EditScreenState();
@@ -14,16 +14,18 @@ class _EditScreenState extends State<EditScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _campaignController;
   late TextEditingController _ageController;
-  late TextEditingController _typeController;
-  late TextEditingController _alignmentController;
+  String? _selectedType;
+  String? _selectedAlignment;
+
+  final List<String> _types = ['Aliado', 'Comerciante', 'Vilão', 'Histórico', 'Incógnito']; // Adicione mais tipos se necessário
+  final List<String> _alignments = ['Leal bom', 'Leal neutro', 'Leal mau', 'Neutro bom', 'Neutro', 'Neutro mau',
+    'Caótico bom', 'Caótico neutro', 'Caótico mau']; // Adicione mais alinhamentos se necessário
 
   @override
   void initState() {
     super.initState();
     _campaignController = TextEditingController();
     _ageController = TextEditingController();
-    _typeController = TextEditingController();
-    _alignmentController = TextEditingController();
 
     _loadCharacterData();
   }
@@ -31,7 +33,7 @@ class _EditScreenState extends State<EditScreen> {
   Future<void> _loadCharacterData() async {
     var characterDoc = await FirebaseFirestore.instance
         .collection('characters')
-        .where('email', isEqualTo: widget.email)
+        .where('characterId', isEqualTo: widget.characterId)
         .get();
 
     var data = characterDoc.docs.first.data() as Map<String, dynamic>;
@@ -39,8 +41,8 @@ class _EditScreenState extends State<EditScreen> {
     setState(() {
       _campaignController.text = data['campaign'];
       _ageController.text = data['age'].toString();
-      _typeController.text = data['type'];
-      _alignmentController.text = data['alignment'];
+      _selectedType = data['type'];
+      _selectedAlignment = data['alignment'];
     });
   }
 
@@ -48,7 +50,7 @@ class _EditScreenState extends State<EditScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       var characterDoc = await FirebaseFirestore.instance
           .collection('characters')
-          .where('email', isEqualTo: widget.email)
+          .where('characterId', isEqualTo: widget.characterId)
           .get();
 
       await FirebaseFirestore.instance
@@ -57,8 +59,8 @@ class _EditScreenState extends State<EditScreen> {
           .update({
         'campaign': _campaignController.text,
         'age': int.parse(_ageController.text),
-        'type': _typeController.text,
-        'alignment': _alignmentController.text,
+        'type': _selectedType,
+        'alignment': _selectedAlignment,
       });
 
       Navigator.of(context).pop();
@@ -69,8 +71,6 @@ class _EditScreenState extends State<EditScreen> {
   void dispose() {
     _campaignController.dispose();
     _ageController.dispose();
-    _typeController.dispose();
-    _alignmentController.dispose();
     super.dispose();
   }
 
@@ -117,27 +117,49 @@ class _EditScreenState extends State<EditScreen> {
                 },
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _typeController,
+              DropdownButtonFormField<String>(
+                value: _selectedType,
                 decoration: InputDecoration(
                   labelText: 'Tipo',
                 ),
+                items: _types.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedType = value;
+                  });
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o tipo';
+                    return 'Por favor, selecione um tipo';
                   }
                   return null;
                 },
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _alignmentController,
+              DropdownButtonFormField<String>(
+                value: _selectedAlignment,
                 decoration: InputDecoration(
                   labelText: 'Alinhamento',
                 ),
+                items: _alignments.map((alignment) {
+                  return DropdownMenuItem(
+                    value: alignment,
+                    child: Text(alignment),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedAlignment = value;
+                  });
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o alinhamento';
+                    return 'Por favor, selecione um alinhamento';
                   }
                   return null;
                 },

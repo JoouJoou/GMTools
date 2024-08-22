@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart'; // Adicione esta importação para usar o TextInputFormatter
+import 'package:uuid/uuid.dart'; // Adicione esta importação
 
 class CreationScreen extends StatefulWidget {
   @override
@@ -64,8 +65,12 @@ class _CreationScreenState extends State<CreationScreen> {
       return;
     }
 
+    // Gerar um ID único para o personagem
+    final characterId = Uuid().v4();
+
     try {
       await FirebaseFirestore.instance.collection('characters').add({
+        'characterId': characterId, // Adicionar o characterId
         'email': _email,
         'campaign': campaign,
         'age': age,
